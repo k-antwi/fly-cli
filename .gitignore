@@ -1,0 +1,9 @@
+/vendor
+/builds/*
+!/builds/.gitkeep
+.phpunit.result.cache
+.phpunit.cache
+.idea/
+.DS_Store
+art/.DS_Store
+.env

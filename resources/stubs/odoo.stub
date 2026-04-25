@@ -1,0 +1,37 @@
+# For more information: https://github.com/k-antwi/fly
+services:
+    db:
+        image: postgres:17
+        container_name: '${ODOO_DB_CONTAINER_NAME}'
+        platform: linux/amd64
+        restart: unless-stopped
+        volumes:
+            - ./db:/var/lib/postgresql/data
+        environment:
+            - POSTGRES_DB='${DB_DATABASE}'
+            - POSTGRES_PASSWORD='${DB_PASSWORD}'
+            - POSTGRES_USER='${DB_USERNAME}'
+        ports:
+            - '${FORWARD_DB_PORT:-5432}:5432'
+
+    odoo.fly:
+        image: odoo:latest
+        platform: linux/amd64
+        container_name: '${ODOO_CONTAINER_NAME}'
+        depends_on:
+            - db
+        restart: unless-stopped
+        ports:
+            - '${ODOO_APP_PORT:-8069}:8069'
+            - '${ODOO_LONG_POLLING:-8072}:8072'
+        volumes:
+            - ./app/config:/etc/odoo
+            - ./app/addons:/home/odoo/addons
+            - ./app/data:/home/odoo/lib
+            #  command: odoo -u all -d ''
+
+##### Uncomment the below command to install dependencies for Autobackup Database App and comment it and restart the server and then go on to install the app
+#command: /bin/bash -c "pip3 install boto3 dropbox pyncclient nextcloud-api-wrapper paramiko && /entrypoint.sh odoo"
+
+##### Uncomment this to list your databases
+  #command: -- --no-database-list
