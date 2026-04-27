@@ -34,6 +34,13 @@ trait ProxiesDocker
 
         $this->setEnvDefault('APP_NAME', 'fly-app');
         $this->setEnvDefault('APP_SERVICE', 'laravel.fly');
+        $this->setEnvDefault('FLY_ROUTER_DOMAIN', 'localhost');
+
+        $appName = getenv('APP_NAME') ?: 'fly-app';
+        $domain  = getenv('FLY_ROUTER_DOMAIN') ?: 'localhost';
+        $host    = $this->sanitiseAppHostname($appName).'.'.$domain;
+        putenv('FLY_APP_HOST='.$host);
+        $_ENV['FLY_APP_HOST'] = $host;
         $this->setEnvDefault('WWWUSER', (string) (function_exists('posix_geteuid') ? posix_geteuid() : 1000));
         $this->setEnvDefault('WWWGROUP', (string) (function_exists('posix_getegid') ? posix_getegid() : 1000));
 
@@ -319,6 +326,7 @@ trait ProxiesDocker
             'FORWARD_MEILISEARCH_PORT', 'FLY_FILES', 'FLY_SHARE_DASHBOARD',
             'FLY_SHARE_SERVER_HOST', 'FLY_SHARE_SERVER_PORT', 'FLY_SHARE_SUBDOMAIN',
             'FLY_SHARE_DOMAIN', 'FLY_SHARE_SERVER', 'APP_URL',
+            'FLY_APP_HOST', 'FLY_ROUTER_DOMAIN',
         ] as $key) {
             $value = getenv($key);
             if ($value !== false) {
@@ -332,5 +340,15 @@ trait ProxiesDocker
     protected function stdinIsTty(): bool
     {
         return defined('STDIN') && function_exists('posix_isatty') && @posix_isatty(STDIN);
+    }
+
+    private function sanitiseAppHostname(string $name): string
+    {
+        $name = strtolower($name);
+        $name = preg_replace('/[_\s]+/', '-', $name);
+        $name = preg_replace('/[^a-z0-9-]/', '', $name);
+        $name = trim($name, '-');
+
+        return substr($name, 0, 63) ?: 'fly-app';
     }
 }

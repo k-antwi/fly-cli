@@ -11,3 +11,10 @@ soketi:
         - '${PUSHER_METRICS_PORT:-9601}:9601'
     networks:
         - fly
+        - fly-router
+    labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.${APP_NAME:-fly-app}-soketi.rule=Host(`soketi.${FLY_APP_HOST:-fly-app.localhost}`)"
+        - "traefik.http.routers.${APP_NAME:-fly-app}-soketi.entrypoints=websecure"
+        - "traefik.http.routers.${APP_NAME:-fly-app}-soketi.tls=true"
+        - "traefik.http.services.${APP_NAME:-fly-app}-soketi.loadbalancer.server.port=6001"

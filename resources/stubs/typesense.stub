@@ -10,6 +10,13 @@ typesense:
         - 'fly-typesense:/typesense-data'
     networks:
         - fly
+        - fly-router
+    labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.${APP_NAME:-fly-app}-typesense.rule=Host(`typesense.${FLY_APP_HOST:-fly-app.localhost}`)"
+        - "traefik.http.routers.${APP_NAME:-fly-app}-typesense.entrypoints=websecure"
+        - "traefik.http.routers.${APP_NAME:-fly-app}-typesense.tls=true"
+        - "traefik.http.services.${APP_NAME:-fly-app}-typesense.loadbalancer.server.port=8108"
     healthcheck:
         test: ["CMD", "wget", "--no-verbose", "--spider",  "http://localhost:8108/health"]
         retries: 5

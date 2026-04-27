@@ -10,6 +10,13 @@ minio:
         - 'fly-minio:/data'
     networks:
         - fly
+        - fly-router
+    labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.${APP_NAME:-fly-app}-minio.rule=Host(`minio.${FLY_APP_HOST:-fly-app.localhost}`)"
+        - "traefik.http.routers.${APP_NAME:-fly-app}-minio.entrypoints=websecure"
+        - "traefik.http.routers.${APP_NAME:-fly-app}-minio.tls=true"
+        - "traefik.http.services.${APP_NAME:-fly-app}-minio.loadbalancer.server.port=8900"
     command: minio server /data --console-address ":8900"
     healthcheck:
         test: ["CMD", "mc", "ready", "local"]

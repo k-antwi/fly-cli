@@ -5,3 +5,10 @@ mailpit:
         - '${FORWARD_MAILPIT_DASHBOARD_PORT:-8025}:8025'
     networks:
         - fly
+        - fly-router
+    labels:
+        - "traefik.enable=true"
+        - "traefik.http.routers.${APP_NAME:-fly-app}-mailpit.rule=Host(`mailpit.${FLY_APP_HOST:-fly-app.localhost}`)"
+        - "traefik.http.routers.${APP_NAME:-fly-app}-mailpit.entrypoints=websecure"
+        - "traefik.http.routers.${APP_NAME:-fly-app}-mailpit.tls=true"
+        - "traefik.http.services.${APP_NAME:-fly-app}-mailpit.loadbalancer.server.port=8025"

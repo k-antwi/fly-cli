@@ -22,6 +22,16 @@ services:
             - '.:/var/www/html'
         networks:
             - fly
+            - fly-router
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.${APP_NAME:-fly-app}-app.rule=Host(`${FLY_APP_HOST:-fly-app.localhost}`)"
+            - "traefik.http.routers.${APP_NAME:-fly-app}-app.entrypoints=websecure"
+            - "traefik.http.routers.${APP_NAME:-fly-app}-app.tls=true"
+            - "traefik.http.services.${APP_NAME:-fly-app}-app.loadbalancer.server.port=80"
 networks:
     fly:
         driver: bridge
+    fly-router:
+        external: true
+        name: fly-router

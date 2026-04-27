@@ -156,6 +156,9 @@ trait InteractsWithDockerComposeServices
             unset($compose['volumes']);
         }
 
+        $this->addRouterNetworkIfAbsent($compose);
+        $this->backfillRouterLabels($compose);
+
         $yaml = Yaml::dump($compose, Yaml::DUMP_OBJECT_AS_MAP);
 
         $yaml = str_replace('{{PHP_VERSION}}', $this->hasOption('php') ? $this->option('php') : '8.4', $yaml);
@@ -207,6 +210,8 @@ trait InteractsWithDockerComposeServices
         if (empty($compose['volumes'])) {
             unset($compose['volumes']);
         }
+
+        $this->addRouterNetworkIfAbsent($compose);
 
         $yaml = Yaml::dump($compose, Yaml::DUMP_OBJECT_AS_MAP);
 
@@ -388,6 +393,32 @@ trait InteractsWithDockerComposeServices
         $argv = $_SERVER['argv'][0] ?? 'fly';
 
         return str_starts_with($argv, '/') ? $argv : 'fly';
+    }
+
+    private function addRouterNetworkIfAbsent(array &$compose): void
+    {
+        if (! isset($compose['networks']['fly-router'])) {
+            $compose['networks']['fly-router'] = ['external' => true, 'name' => 'fly-router'];
+        }
+    }
+
+    private function backfillRouterLabels(array &$compose): void
+    {
+        if (isset($compose['services']['laravel.fly']) &&
+            empty($compose['services']['laravel.fly']['labels'])) {
+            $compose['services']['laravel.fly']['labels'] = [
+                'traefik.enable=true',
+                'traefik.http.routers.${APP_NAME:-fly-app}-app.rule=Host(`${FLY_APP_HOST:-fly-app.localhost}`)',
+                'traefik.http.routers.${APP_NAME:-fly-app}-app.entrypoints=websecure',
+                'traefik.http.routers.${APP_NAME:-fly-app}-app.tls=true',
+                'traefik.http.services.${APP_NAME:-fly-app}-app.loadbalancer.server.port=80',
+            ];
+        }
+
+        if (isset($compose['services']['laravel.fly']['networks']) &&
+            ! in_array('fly-router', (array) $compose['services']['laravel.fly']['networks'])) {
+            $compose['services']['laravel.fly']['networks'][] = 'fly-router';
+        }
     }
 
     /**
