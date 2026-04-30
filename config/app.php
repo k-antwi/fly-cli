@@ -4,7 +4,7 @@ return [
 
     'name' => 'Fly',
 
-    'version' => '1.0.0',
+    'version' => '0.0.2',
 
     'env' => 'development',
 
