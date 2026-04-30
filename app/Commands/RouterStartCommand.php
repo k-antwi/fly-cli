@@ -4,7 +4,6 @@ namespace App\Commands;
 
 use App\Concerns\ManagesRouter;
 use LaravelZero\Framework\Commands\Command;
-use Symfony\Component\Process\Process;
 
 class RouterStartCommand extends Command
 {
@@ -16,10 +15,7 @@ class RouterStartCommand extends Command
 
     public function handle(): int
     {
-        $process = new Process(['docker', 'info']);
-        $process->run();
-
-        if (! $process->isSuccessful()) {
+        if (! $this->dockerIsRunning()) {
             $this->output->writeln('<error>Docker is not running.</error>');
 
             return 1;

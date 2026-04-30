@@ -395,14 +395,14 @@ trait InteractsWithDockerComposeServices
         return str_starts_with($argv, '/') ? $argv : 'fly';
     }
 
-    private function addRouterNetworkIfAbsent(array &$compose): void
+    protected function addRouterNetworkIfAbsent(array &$compose): void
     {
         if (! isset($compose['networks']['fly-router'])) {
             $compose['networks']['fly-router'] = ['external' => true, 'name' => 'fly-router'];
         }
     }
 
-    private function backfillRouterLabels(array &$compose): void
+    protected function backfillRouterLabels(array &$compose): void
     {
         if (isset($compose['services']['laravel.fly']) &&
             empty($compose['services']['laravel.fly']['labels'])) {

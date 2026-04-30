@@ -89,6 +89,14 @@ trait ManagesRouter
         return getenv('FLY_ROUTER_DOMAIN') ?: 'localhost';
     }
 
+    protected function dockerIsRunning(): bool
+    {
+        $process = new Process(['docker', 'info']);
+        $process->run();
+
+        return $process->isSuccessful();
+    }
+
     protected function sanitiseHostname(string $name): string
     {
         $name = strtolower($name);
@@ -107,7 +115,7 @@ trait ManagesRouter
         return $check->isSuccessful() ? ['docker', 'compose'] : ['docker-compose'];
     }
 
-    private function routerComposeContents(): string
+    protected function routerComposeContents(): string
     {
         return <<<'YAML'
 # Managed by fly — regenerate with: fly router:start --force
