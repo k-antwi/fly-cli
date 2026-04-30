@@ -43,6 +43,35 @@ fly up:vps                 # run docker compose on the remote VPS
 
 Run `fly` with no arguments to see the full command list, or `fly <command> --help` for details on any single command.
 
+### Global Router (Traefik)
+
+Manage local routing and subdomains with a global Traefik router:
+
+```bash
+fly router:start           # start the global Traefik router
+fly router:status          # view router status and configured routes
+fly router:stop            # stop the global Traefik router
+```
+
+The router provides:
+- **Automatic subdomain routing** to your containers (e.g., `*.localhost` or `*.test`)
+- **Dashboard** at `http://localhost:8080` to view routes and services
+- **Dynamic routing** — services are automatically discovered and routed
+
+**Example workflow:**
+```bash
+fly router:start
+fly install
+fly up -d
+# Your app is now accessible at http://myapp.localhost (or your configured domain)
+fly router:status  # see what's running
+```
+
+Configure the router domain in your `.env`:
+```env
+FLY_ROUTER_DOMAIN=localhost  # or .test, .local, etc.
+```
+
 ## Inspiration
 
 Fly is inspired by [Sail](https://github.com/laravel/sail) and derived from [Vessel](https://github.com/shipping-docker/vessel) by [Chris Fidao](https://github.com/fideloper).

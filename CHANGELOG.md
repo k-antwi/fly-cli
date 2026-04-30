@@ -1,6 +1,23 @@
 # Release Notes
 
-## [Unreleased](https://github.com/laravel/sail/compare/v1.41.0...1.x)
+## [Unreleased](https://github.com/k-antwi/fly/compare/v0.0.2...main)
+
+## [v0.0.2](https://github.com/k-antwi/fly/releases/tag/v0.0.2) - 2026-04-30
+
+### Added
+* **Global Traefik Router** — Manage local routing and subdomains with a global Traefik instance
+  * `fly router:start` — Start the global Traefik router with automatic service discovery
+  * `fly router:status` — View router status, configured routes, and service health
+  * `fly router:stop` — Stop the global Traefik router
+* **Automatic Subdomain Routing** — Services are automatically routed to configurable subdomains (`.localhost`, `.test`, etc.)
+* **Router Dashboard** — Access Traefik dashboard at `http://localhost:8080` to inspect routes and services in real-time
+* **Configurable Router Domain** — Set `FLY_ROUTER_DOMAIN` in `.env` to customize the domain suffix
+* **Docker Integration** — Router automatically discovers and routes to Docker services created by `fly up`
+
+### Technical Details
+* Traefik handles subdomain and route-based proxying for development
+* Services labeled with Traefik rules are automatically discovered
+* Seamless integration with existing `fly up`/`fly down` workflows
 
 ## [v1.41.0](https://github.com/laravel/sail/compare/v1.40.0...v1.41.0) - 2025-01-24
 
