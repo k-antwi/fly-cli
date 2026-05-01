@@ -8,11 +8,32 @@ Fly is a **standalone CLI binary** built with [Laravel Zero](https://laravel-zer
 
 ## Installation
 
-Download the prebuilt binary (or build it yourself, below) and place it on your `$PATH`:
+Run the installer script — it downloads the latest binary, creates `~/.fly`, and adds it to your `PATH`:
 
 ```bash
+curl -fsSL https://raw.githubusercontent.com/k-antwi/fly-cli/main/release/install.sh | sh
+```
+
+Then reload your shell:
+
+```bash
+source ~/.zshrc   # or ~/.bashrc
+```
+
+Verify the install:
+
+```bash
+fly --version
+```
+
+### Manual install
+
+If you'd prefer to place the binary yourself:
+
+```bash
+curl -fsSL https://github.com/k-antwi/fly-cli/releases/latest/download/fly -o fly
+chmod +x fly
 mv fly /usr/local/bin/fly
-chmod +x /usr/local/bin/fly
 ```
 
 ## Building from source

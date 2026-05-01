@@ -33,6 +33,17 @@ Configure your hostname via FLY_APP_HOST in .env. TLS is enabled by default.
 ### Traefik Guide
 
 A new [docs/TRAEFIK_GUIDE.md](vscode-webview://1705mioeojloh5fh714ri1feqjhvoni82ap8r63e58f35k0k011c/docs/TRAEFIK_GUIDE.md) covers router setup, subdomain configuration, TLS, and troubleshooting from scratch.
+=======
+
+### Added
+* **One-line installer** — install fly with a single `curl` command
+  * Downloads the latest binary from GitHub Releases into `~/.fly/`
+  * Creates the `~/.fly` directory if it does not already exist
+  * Appends `~/.fly` to `PATH` in the user's shell profile (`~/.zshrc` for zsh, `~/.bashrc` / `~/.bash_profile` for bash)
+  * Idempotent — re-running the script updates the binary without duplicating the `PATH` entry
+  ```bash
+  curl -fsSL https://raw.githubusercontent.com/k-antwi/fly-cli/main/release/install.sh | sh
+  ```
 
 ## [v0.3.0](https://github.com/k-antwi/fly/releases/tag/v0.3.0) - 2026-05-01
 
