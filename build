@@ -30,7 +30,7 @@ fi
 # 3. Copy to release/
 mkdir -p "$RELEASE_DIR"
 cp "$BUILT" "$RELEASE_DIR/fly"
-chmod +x "$RELEASE_DIR/fly"
+chmod 755 "$RELEASE_DIR/fly"
 
 echo ""
 echo "✓ Release binary written to: $RELEASE_DIR/fly"

@@ -1,37 +1,32 @@
 # Release Notes
 
-## [Unreleased](https://github.com/k-antwi/fly/compare/v0.3.0...main)
+## [v0.3.0](https://github.com/k-antwi/fly/releases/tag/v0.3.0) - 2026-05-01
 
-## [v0.3.0](https://github.com/k-antwi/fly/compare/v0.0.2...v0.3.0) - 2026-05-01
+### Added
+* **Node.js Docker Support** — Containerise Node.js applications with a single command
+  * `fly install:node` — Scaffold a Docker Compose environment for Node.js projects
+  * Runs on port `3000` using an Alpine-based `node:22` image
+  * Supports `--node=<version>` to pin a specific Node.js version (default: `22`)
+  * Supports `--with=<services>` to include backing services (mysql, pgsql, mariadb, mongodb, redis, valkey, memcached, meilisearch, typesense, minio, mailpit, soketi)
+  * Default services: `mysql`, `redis`, `mailpit`
+  * Supports `--live` to provision the environment directly on a remote VPS
+* **Vue.js Docker Support** — First-class Vite dev-server integration for Vue.js applications
+  * `fly install:vue` — Scaffold a Docker Compose environment for Vue.js projects
+  * Runs on port `5173` with `VITE_HOST=0.0.0.0` for in-container HMR
+  * Supports the same `--with`, `--node`, and `--live` flags as `install:node`
+  * Default service: `mailpit`
+* **React Docker Support** — First-class Vite dev-server integration for React applications
+  * `fly install:react` — Scaffold a Docker Compose environment for React projects
+  * Runs on port `5173` with `VITE_HOST=0.0.0.0` for in-container HMR
+  * Supports the same `--with`, `--node`, and `--live` flags as `install:node`
+  * Default service: `mailpit`
+* **Traefik Guide** — Comprehensive `docs/TRAEFIK_GUIDE.md` covering router setup, subdomain configuration, TLS, and troubleshooting
 
-##### What's New in v0.3.0
-
-This release expands Fly beyond Laravel, bringing Docker-based development environments to Node.js, Vue.js, and React projects — with automatic Traefik routing included out of the box.
-
-JavaScript Runtime Support
-Three new install commands scaffold a complete Docker Compose environment for your project in seconds:
-
-fly install:node    # Node.js — port 3000
-fly install:vue     # Vue.js (Vite) — port 5173
-fly install:react   # React (Vite) — port 5173
-Each command supports the same familiar flags:
-
---with=mysql,redis,mailpit — attach any combination of backing services
---node=22 — pin a specific Node.js version (default: 22)
---live — provision directly on a remote VPS
-Available backing services: mysql, pgsql, mariadb, mongodb, redis, valkey, memcached, meilisearch, typesense, minio, mailpit, soketi
-
-Automatic Traefik Routing
-All three runtimes are pre-wired to the Fly router network. Start the router once and every project gets its own subdomain — no manual proxy config needed.
-
-fly router:start
-
-### your app is live at https://my-app.localhost
-
-Configure your hostname via FLY_APP_HOST in .env. TLS is enabled by default.
-
-Traefik Guide
-A new [docs/TRAEFIK_GUIDE.md](vscode-webview://1705mioeojloh5fh714ri1feqjhvoni82ap8r63e58f35k0k011c/docs/TRAEFIK_GUIDE.md) covers router setup, subdomain configuration, TLS, and troubleshooting from scratch.
+### Technical Details
+* All three runtimes use `node:<version>-alpine` base images keeping images lean
+* Each runtime container joins both the `fly` bridge network and the external `fly-router` network, enabling automatic Traefik subdomain routing out of the box
+* TLS is enabled by default via Traefik labels; the app hostname is configurable with `FLY_APP_HOST` (e.g. `my-app.localhost`)
+* Vue and React containers expose the Vite dev port; Node containers expose port `3000` and run `npm start`
 
 ## [v0.0.2](https://github.com/k-antwi/fly/releases/tag/v0.0.2) - 2026-04-30
 
