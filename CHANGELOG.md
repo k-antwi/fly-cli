@@ -1,20 +1,54 @@
 # Release Notes
 
-## [Unreleased](https://github.com/k-antwi/fly/compare/v0.0.2...main)
+## [Unreleased](https://github.com/k-antwi/fly/compare/v0.3.0...main)
+
+## [v0.3.0](https://github.com/k-antwi/fly/compare/v0.0.2...v0.3.0) - 2026-05-01
+
+##### What's New in v0.3.0
+
+This release expands Fly beyond Laravel, bringing Docker-based development environments to Node.js, Vue.js, and React projects — with automatic Traefik routing included out of the box.
+
+JavaScript Runtime Support
+Three new install commands scaffold a complete Docker Compose environment for your project in seconds:
+
+fly install:node    # Node.js — port 3000
+fly install:vue     # Vue.js (Vite) — port 5173
+fly install:react   # React (Vite) — port 5173
+Each command supports the same familiar flags:
+
+--with=mysql,redis,mailpit — attach any combination of backing services
+--node=22 — pin a specific Node.js version (default: 22)
+--live — provision directly on a remote VPS
+Available backing services: mysql, pgsql, mariadb, mongodb, redis, valkey, memcached, meilisearch, typesense, minio, mailpit, soketi
+
+Automatic Traefik Routing
+All three runtimes are pre-wired to the Fly router network. Start the router once and every project gets its own subdomain — no manual proxy config needed.
+
+fly router:start
+
+### your app is live at https://my-app.localhost
+
+Configure your hostname via FLY_APP_HOST in .env. TLS is enabled by default.
+
+Traefik Guide
+A new [docs/TRAEFIK_GUIDE.md](vscode-webview://1705mioeojloh5fh714ri1feqjhvoni82ap8r63e58f35k0k011c/docs/TRAEFIK_GUIDE.md) covers router setup, subdomain configuration, TLS, and troubleshooting from scratch.
 
 ## [v0.0.2](https://github.com/k-antwi/fly/releases/tag/v0.0.2) - 2026-04-30
 
 ### Added
+
 * **Global Traefik Router** — Manage local routing and subdomains with a global Traefik instance
   * `fly router:start` — Start the global Traefik router with automatic service discovery
   * `fly router:status` — View router status, configured routes, and service health
   * `fly router:stop` — Stop the global Traefik router
+  
 * **Automatic Subdomain Routing** — Services are automatically routed to configurable subdomains (`.localhost`, `.test`, etc.)
 * **Router Dashboard** — Access Traefik dashboard at `http://localhost:8080` to inspect routes and services in real-time
 * **Configurable Router Domain** — Set `FLY_ROUTER_DOMAIN` in `.env` to customize the domain suffix
 * **Docker Integration** — Router automatically discovers and routes to Docker services created by `fly up`
 
 ### Technical Details
+
 * Traefik handles subdomain and route-based proxying for development
 * Services labeled with Traefik rules are automatically discovered
 * Seamless integration with existing `fly up`/`fly down` workflows
