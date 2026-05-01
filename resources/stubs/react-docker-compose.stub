@@ -2,8 +2,8 @@
 services:
     react.fly:
         build:
-            context: ./docker/react
-            dockerfile: Dockerfile
+            context: .
+            dockerfile: ./docker/react/Dockerfile
         image: fly-react/app
         extra_hosts:
             - 'host.docker.internal:host-gateway'

@@ -2,8 +2,8 @@
 services:
     node.fly:
         build:
-            context: ./docker/node
-            dockerfile: Dockerfile
+            context: .
+            dockerfile: ./docker/node/Dockerfile
         image: fly-node/app
         extra_hosts:
             - 'host.docker.internal:host-gateway'
