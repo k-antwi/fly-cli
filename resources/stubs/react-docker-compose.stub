@@ -1,0 +1,32 @@
+# For more information: https://github.com/k-antwi/fly
+services:
+    react.fly:
+        build:
+            context: ./docker/react
+            dockerfile: Dockerfile
+        image: fly-react/app
+        extra_hosts:
+            - 'host.docker.internal:host-gateway'
+        ports:
+            - '${APP_PORT:-5173}:5173'
+        environment:
+            NODE_ENV: '${NODE_ENV:-development}'
+            VITE_HOST: '0.0.0.0'
+        volumes:
+            - '.:/app'
+            - '/app/node_modules'
+        networks:
+            - fly
+            - fly-router
+        labels:
+            - "traefik.enable=true"
+            - "traefik.http.routers.${APP_NAME:-fly-app}-app.rule=Host(`${FLY_APP_HOST:-fly-app.localhost}`)"
+            - "traefik.http.routers.${APP_NAME:-fly-app}-app.entrypoints=websecure"
+            - "traefik.http.routers.${APP_NAME:-fly-app}-app.tls=true"
+            - "traefik.http.services.${APP_NAME:-fly-app}-app.loadbalancer.server.port=5173"
+networks:
+    fly:
+        driver: bridge
+    fly-router:
+        external: true
+        name: fly-router

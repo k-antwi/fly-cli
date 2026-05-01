@@ -696,4 +696,132 @@ trait InteractsWithDockerComposeServices
             $compose['services']['vue.fly']['networks'][] = 'fly-router';
         }
     }
+
+    /**
+     * Copy bundled React runtime into the user's project.
+     */
+    protected function publishReactDockerResources(): void
+    {
+        $this->copyDirectory($this->resourcePath('runtimes/react'), $this->projectPath('docker/react'));
+        $this->copyDirectory($this->resourcePath('database'), $this->projectPath('docker'));
+    }
+
+    /**
+     * Build the Docker Compose file for React projects.
+     */
+    protected function buildReactDockerCompose(array $services): void
+    {
+        $composePath = $this->projectPath('docker-compose.yml');
+
+        $compose = file_exists($composePath)
+            ? Yaml::parseFile($composePath)
+            : Yaml::parse(file_get_contents($this->resourcePath('stubs/react-docker-compose.stub')));
+
+        if (! array_key_exists('react.fly', $compose['services'])) {
+            $this->warn('Couldn\'t find the react.fly service. Make sure you add ['.implode(',', $services).'] to the depends_on config.');
+        } else {
+            $compose['services']['react.fly']['depends_on'] = collect($compose['services']['react.fly']['depends_on'] ?? [])
+                ->merge($services)
+                ->unique()
+                ->values()
+                ->all();
+        }
+
+        collect($services)
+            ->filter(function ($service) use ($compose) {
+                return ! array_key_exists($service, $compose['services'] ?? []);
+            })->each(function ($service) use (&$compose) {
+                $compose['services'][$service] = Yaml::parseFile($this->resourcePath("stubs/{$service}.stub"))[$service];
+            });
+
+        collect($services)
+            ->filter(function ($service) {
+                return in_array($service, ['mysql', 'pgsql', 'mariadb', 'mongodb', 'redis', 'valkey', 'meilisearch', 'typesense', 'minio']);
+            })->filter(function ($service) use ($compose) {
+                return ! array_key_exists($service, $compose['volumes'] ?? []);
+            })->each(function ($service) use (&$compose) {
+                $compose['volumes']["fly-{$service}"] = ['driver' => 'local'];
+            });
+
+        if (empty($compose['volumes'])) {
+            unset($compose['volumes']);
+        }
+
+        $this->addRouterNetworkIfAbsent($compose);
+        $this->backfillReactRouterLabels($compose);
+
+        $yaml = Yaml::dump($compose, Yaml::DUMP_OBJECT_AS_MAP);
+
+        file_put_contents($composePath, $yaml);
+    }
+
+    /**
+     * Build the Docker Compose file for React projects (production).
+     */
+    protected function buildReactDockerComposeForProduction(array $services): void
+    {
+        $composePath = $this->projectPath('docker-compose-live.yml');
+
+        $compose = file_exists($composePath)
+            ? Yaml::parseFile($composePath)
+            : Yaml::parse(file_get_contents($this->resourcePath('stubs/react-docker-compose.stub')));
+
+        if (! array_key_exists('react.fly', $compose['services'])) {
+            $this->warn('Couldn\'t find the react.fly service. Make sure you add ['.implode(',', $services).'] to the depends_on config.');
+        } else {
+            $compose['services']['react.fly']['depends_on'] = collect($compose['services']['react.fly']['depends_on'] ?? [])
+                ->merge($services)
+                ->unique()
+                ->values()
+                ->all();
+        }
+
+        collect($services)
+            ->filter(function ($service) use ($compose) {
+                return ! array_key_exists($service, $compose['services'] ?? []);
+            })->each(function ($service) use (&$compose) {
+                $compose['services'][$service] = Yaml::parseFile($this->resourcePath("stubs/{$service}.stub"))[$service];
+            });
+
+        collect($services)
+            ->filter(function ($service) {
+                return in_array($service, ['mysql', 'pgsql', 'mariadb', 'mongodb', 'redis', 'valkey', 'meilisearch', 'typesense', 'minio']);
+            })->filter(function ($service) use ($compose) {
+                return ! array_key_exists($service, $compose['volumes'] ?? []);
+            })->each(function ($service) use (&$compose) {
+                $compose['volumes']["fly-{$service}"] = ['driver' => 'local'];
+            });
+
+        if (empty($compose['volumes'])) {
+            unset($compose['volumes']);
+        }
+
+        $this->addRouterNetworkIfAbsent($compose);
+
+        $yaml = Yaml::dump($compose, Yaml::DUMP_OBJECT_AS_MAP);
+
+        file_put_contents($composePath, $yaml);
+    }
+
+    /**
+     * Add Traefik router labels to the react.fly service.
+     */
+    protected function backfillReactRouterLabels(array &$compose): void
+    {
+        if (isset($compose['services']['react.fly']) &&
+            empty($compose['services']['react.fly']['labels'])) {
+            $compose['services']['react.fly']['labels'] = [
+                'traefik.enable=true',
+                'traefik.http.routers.${APP_NAME:-fly-app}-app.rule=Host(`${FLY_APP_HOST:-fly-app.localhost}`)',
+                'traefik.http.routers.${APP_NAME:-fly-app}-app.entrypoints=websecure',
+                'traefik.http.routers.${APP_NAME:-fly-app}-app.tls=true',
+                'traefik.http.services.${APP_NAME:-fly-app}-app.loadbalancer.server.port=5173',
+            ];
+        }
+
+        if (isset($compose['services']['react.fly']['networks']) &&
+            ! in_array('fly-router', (array) $compose['services']['react.fly']['networks'])) {
+            $compose['services']['react.fly']['networks'][] = 'fly-router';
+        }
+    }
 }
