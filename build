@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# ---------------------------------------------------------------------------
+# build.sh — Build the fly binary for release
+# Usage: ./build.sh [version]
+# ---------------------------------------------------------------------------
+
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+VERSION="${1:-$(grep '"version"' "$SCRIPT_DIR/config/app.php" | head -1 | grep -oP "[\d.]+" | head -1)}"
+RELEASE_DIR="$SCRIPT_DIR/release"
+
+echo "==> Building fly v${VERSION}…"
+
+# 1. Install / refresh production dependencies
+echo "==> composer install (no-dev)…"
+composer install --no-dev --optimize-autoloader --working-dir="$SCRIPT_DIR"
+
+# 2. Compile the PHAR via Laravel Zero's app:build command
+echo "==> Compiling binary…"
+php "$SCRIPT_DIR/fly" app:build fly --build-version="$VERSION"
+
+BUILT="$SCRIPT_DIR/builds/fly"
+
+if [[ ! -f "$BUILT" ]]; then
+    echo "ERROR: expected build output at $BUILT — build may have failed." >&2
+    exit 1
+fi
+
+# 3. Copy to release/
+mkdir -p "$RELEASE_DIR"
+cp "$BUILT" "$RELEASE_DIR/fly"
+chmod +x "$RELEASE_DIR/fly"
+
+echo ""
+echo "✓ Release binary written to: $RELEASE_DIR/fly"
+echo "  Size : $(du -sh "$RELEASE_DIR/fly" | cut -f1)"
+echo "  SHA256: $(shasum -a 256 "$RELEASE_DIR/fly" | awk '{print $1}')"
