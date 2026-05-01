@@ -16,15 +16,14 @@ class DuskCommand extends ContainerCommand
             return $code;
         }
 
-        $service = getenv('APP_SERVICE') ?: 'laravel.fly';
-
         return $this->composeExec(
             array_merge(['php', 'artisan', 'dusk'], $this->forwardedTokens()),
             'fly',
             [
-                'APP_URL' => "http://{$service}",
+                'APP_URL' => 'http://laravel.fly',
                 'DUSK_DRIVER_URL' => 'http://selenium:4444/wd/hub',
-            ]
+            ],
+            'laravel.fly'
         );
     }
 }

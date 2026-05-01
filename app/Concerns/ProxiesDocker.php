@@ -33,7 +33,7 @@ trait ProxiesDocker
         $this->loadDotEnv();
 
         $this->setEnvDefault('APP_NAME', 'fly-app');
-        $this->setEnvDefault('APP_SERVICE', 'laravel.fly');
+        $this->setEnvDefault('APP_SERVICE', $this->detectAppService());
         $this->setEnvDefault('FLY_ROUTER_DOMAIN', 'localhost');
 
         $appName = getenv('APP_NAME') ?: 'fly-app';
@@ -138,7 +138,7 @@ trait ProxiesDocker
             $argv[] = '-T';
         }
 
-        $argv[] = $service ?? (getenv('APP_SERVICE') ?: 'laravel.fly');
+        $argv[] = $service ?? (getenv('APP_SERVICE') ?: $this->detectAppService());
 
         return $this->runProcess(array_merge($argv, $command));
     }
@@ -222,7 +222,7 @@ trait ProxiesDocker
 
     protected function detectRunningState(): bool
     {
-        $service = getenv('APP_SERVICE') ?: 'laravel.fly';
+        $service = getenv('APP_SERVICE') ?: $this->detectAppService();
 
         // Probe for an exited service container; if found, take the stack down.
         $argv = array_merge($this->dockerCompose, ['ps', $service]);
@@ -243,6 +243,25 @@ trait ProxiesDocker
         $ids->run();
 
         return trim($ids->getOutput()) !== '';
+    }
+
+    protected function detectAppService(): string
+    {
+        $composePath = $this->projectPath('docker-compose.yml');
+
+        if (! file_exists($composePath)) {
+            return 'laravel.fly';
+        }
+
+        $content = file_get_contents($composePath);
+
+        // Find the first service name ending in .fly — that's the app container.
+        // Infrastructure services (mysql, redis, etc.) never use this suffix.
+        if (preg_match('/^\s+([a-z][a-z0-9-]*\.fly)\s*:/m', $content, $matches)) {
+            return $matches[1];
+        }
+
+        return 'laravel.fly';
     }
 
     protected function loadDotEnv(): void
