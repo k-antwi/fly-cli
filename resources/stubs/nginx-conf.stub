@@ -1,0 +1,69 @@
+upstream <upstream> {
+  server 127.0.0.1:<port>;
+}
+
+map $http_upgrade $connection_upgrade {
+  default upgrade;
+  ''      close;
+}
+
+# http -> https
+server {
+  listen <ip_address>:80;
+  server_name <domain>;
+
+  location /.well-known/acme-challenge/ {
+      root /var/www/certbot;
+  }
+
+  rewrite ^(.*) https://$host$1 permanent;
+}
+
+server {
+    listen <ip_address>:443 ssl;
+    server_name <domain>;
+
+    proxy_send_timeout 720s;
+
+    # Add Headers for proxy mode
+    proxy_set_header X-Forwarded-Host $host;
+    proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+    proxy_set_header X-Forwarded-Proto $scheme;
+    proxy_set_header X-Real-IP $remote_addr;
+
+    # SSL parameters
+    <ssl_open>ssl_certificate /etc/letsencrypt/live/<domain>/fullchain.pem;
+    <ssl_open>ssl_certificate_key /etc/letsencrypt/live/<domain>/privkey.pem;
+    <ssl_open>include /etc/letsencrypt/options-ssl-nginx.conf; # managed by Certbot
+    <ssl_open>ssl_dhparam /etc/letsencrypt/ssl-dhparams.pem; # managed by Certbot
+
+    # Allow "Well-Known URIs" as per RFC 5785
+    location ~* ^/.well-known/ {
+        allow all;
+    }
+
+    # log
+    access_log /var/log/nginx/<upstream>.access.log;
+    error_log /var/log/nginx/<upstream>.error.log;
+
+    # Redirect websocket requests
+    location /websocket {
+      proxy_pass http://<upstream>;
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection $connection_upgrade;
+      proxy_set_header X-Forwarded-Host $host;
+      proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_set_header X-Real-IP $remote_addr;
+    }
+
+    # Redirect requests to backend server
+    location / {
+      proxy_redirect off;
+      proxy_pass http://<upstream>;
+    }
+
+    # common gzip
+    gzip_types text/css text/scss text/plain text/xml application/xml application/json application/javascript;
+    gzip on;
+}
