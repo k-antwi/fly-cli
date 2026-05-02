@@ -75,6 +75,9 @@ class UpVpsCommand extends Command
             export WWWUSER=\$(id -u)
             export WWWGROUP=\$(id -g)
             mkdir -p {$destDir} && cd {$destDir} && \\
+            if [ -d docker/nginx ]; then
+                find docker/nginx -type f -name '*.conf' -exec sed -i "s|<port>|\${APP_PORT}|g" {} +
+            fi && \\
             (docker compose {$argsStr} 2>/dev/null || docker-compose {$argsStr})
         BASH;
 

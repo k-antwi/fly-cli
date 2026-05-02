@@ -16,7 +16,6 @@ class GenNginxConfCommand extends Command
         {--ip= : The host IP address the server should listen on}
         {--domain= : The domain name (server_name)}
         {--upstream= : The upstream block name (e.g. the app name)}
-        {--port=3000 : The upstream backend port}
         {--letsencrypt : Enable Let\'s Encrypt SSL certificate paths}
         {--no-letsencrypt : Disable Let\'s Encrypt SSL certificate paths}
         {--force : Overwrite the conf file if it already exists}';
@@ -51,13 +50,6 @@ class GenNginxConfCommand extends Command
             required: true,
         );
 
-        $port = (string) $this->option('port');
-        if (! ctype_digit($port) || (int) $port < 1 || (int) $port > 65535) {
-            $this->components->error("Invalid port [{$port}].");
-
-            return 1;
-        }
-
         if ($this->option('letsencrypt')) {
             $letsencrypt = true;
         } elseif ($this->option('no-letsencrypt')) {
@@ -75,7 +67,6 @@ class GenNginxConfCommand extends Command
             '<ip_address>' => $ip,
             '<domain>' => $domain,
             '<upstream>' => $upstream,
-            '<port>' => $port,
             '<ssl_open>' => $letsencrypt ? '' : '# ',
         ]);
 
