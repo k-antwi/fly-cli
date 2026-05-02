@@ -93,6 +93,28 @@ Configure the router domain in your `.env`:
 FLY_ROUTER_DOMAIN=localhost  # or .test, .local, etc.
 ```
 
+### Generate an nginx site config
+
+Scaffold a production-ready nginx server block into `docker/nginx/<domain>.conf`:
+
+```bash
+fly gen:nginx-conf                                  # fully interactive
+fly gen:nginx-conf --ip=203.0.113.10 --domain=example.com --upstream=myapp --port=3000 --letsencrypt
+```
+
+Options:
+
+| Option | Description |
+| --- | --- |
+| `--ip` | Host IP the server should listen on (validated; prompted if omitted) |
+| `--domain` | Domain used for `server_name` and Let's Encrypt cert paths |
+| `--upstream` | Upstream / app name (defaults to the first label of `--domain`) |
+| `--port` | Upstream backend port (default `3000`) |
+| `--letsencrypt` / `--no-letsencrypt` | Enable or disable Let's Encrypt cert lines without prompting |
+| `--force` | Overwrite an existing conf file without prompting |
+
+When `--letsencrypt` is enabled the generated file references `/etc/letsencrypt/live/<domain>/fullchain.pem` and `privkey.pem`; otherwise those lines are emitted as comments so you can wire in your own certificate later.
+
 ## Inspiration
 
 Fly is inspired by [Sail](https://github.com/laravel/sail) and derived from [Vessel](https://github.com/shipping-docker/vessel) by [Chris Fidao](https://github.com/fideloper).
