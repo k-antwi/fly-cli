@@ -1,5 +1,69 @@
 # Release Notes
 
+## [v0.4.0](https://github.com/k-antwi/fly/releases/tag/v0.3.0/compare/v0.3.1...v0.4.0) - 2026-05-02
+
+### What's New
+
+#### `fly gen:nginx-conf`
+
+A new command scaffolds a production-ready nginx server block into `docker/nginx/<domain>.conf` — upstream block, HTTP→HTTPS redirect, websocket location, gzip, ACME challenge path, and an optional Let's Encrypt cert wiring all in one shot.
+
+```bash
+fly gen:nginx-conf                                  # fully interactive
+fly gen:nginx-conf --ip=203.0.113.10 \
+                   --domain=example.com \
+                   --upstream=myapp \
+                   --port=3000 \
+                   --letsencrypt
+
+
+```
+### Options
+
+| Option                               | Description                                                                                      |
+| ------------------------------------ | ------------------------------------------------------------------------------------------------ |
+| `--ip`                               | Host IP the server should listen on. Validated with `FILTER_VALIDATE_IP`; prompted if omitted.   |
+| `--domain`                           | Domain used for `server_name` and Let's Encrypt cert paths.                                      |
+| `--upstream`                         | Upstream / app name. Defaults to the first label of `--domain` (e.g. `example.com` → `example`). |
+| `--port`                             | Upstream backend port. Default `3000`.                                                           |
+| `--letsencrypt` / `--no-letsencrypt` | Skip the SSL prompt and force the choice.                                                        |
+| `--force`                            | Overwrite an existing conf file without prompting.                                               |
+
+### Let's Encrypt toggle
+
+When Let's Encrypt is enabled, the generated file references:
+
+```nginx
+ssl_certificate     /etc/letsencrypt/live/<domain>/fullchain.pem;
+ssl_certificate_key /etc/letsencrypt/live/<domain>/privkey.pem;
+include             /etc/letsencrypt/options-ssl-nginx.conf;
+ssl_dhparam         /etc/letsencrypt/ssl-dhparams.pem;
+
+
+```
+When disabled, those four lines are emitted as comments so you can wire in your own certificate later without re-running the generator.
+
+### Interactive prompts
+
+Built on Laravel Prompts — any flag you omit is prompted for, with sensible defaults and inline IP validation. Drop the flags entirely to step through it one field at a time.
+
+### Under the hood
+
+- New stub: `resources/stubs/nginx-conf.stub` with normalized placeholders (`<ip_address>`, `<domain>`, `<upstream>`, `<port>`, `<ssl_open>`).
+- New command: `App\Commands\GenNginxConfCommand`.
+- Output directory `docker/nginx/` is created automatically when missing.
+- README updated with the new section under **Usage**.
+
+### Upgrading
+
+```bash
+curl -fsSL https://raw.githubusercontent.com/k-antwi/fly-cli/main/release/install.sh | sh
+fly --version    # → 0.4.0
+
+
+```
+**Full Changelog:** https://github.com/k-antwi/fly-cli/compare/v0.3.0...v0.4.0
+
 ## [v0.3.1](https://github.com/k-antwi/fly/releases/tag/v0.3.0/compare/v0.3.0...v0.3.1) - 2026-05-01
 
 #### [v0.3.1](https://github.com/k-antwi/fly/compare/v0.0.2...v0.3.0) - 2026-05-01
@@ -32,17 +96,19 @@ Configure your hostname via FLY_APP_HOST in .env. TLS is enabled by default.
 
 ### Traefik Guide
 
-A new [docs/TRAEFIK_GUIDE.md](vscode-webview://1705mioeojloh5fh714ri1feqjhvoni82ap8r63e58f35k0k011c/docs/TRAEFIK_GUIDE.md) covers router setup, subdomain configuration, TLS, and troubleshooting from scratch.
-=======
+# A new [docs/TRAEFIK_GUIDE.md](vscode-webview://1705mioeojloh5fh714ri1feqjhvoni82ap8r63e58f35k0k011c/docs/TRAEFIK_GUIDE.md) covers router setup, subdomain configuration, TLS, and troubleshooting from scratch.
 
 ### Added
+
 * **One-line installer** — install fly with a single `curl` command
   * Downloads the latest binary from GitHub Releases into `~/.fly/`
   * Creates the `~/.fly` directory if it does not already exist
   * Appends `~/.fly` to `PATH` in the user's shell profile (`~/.zshrc` for zsh, `~/.bashrc` / `~/.bash_profile` for bash)
   * Idempotent — re-running the script updates the binary without duplicating the `PATH` entry
+  
   ```bash
   curl -fsSL https://raw.githubusercontent.com/k-antwi/fly-cli/main/release/install.sh | sh
+  
   ```
 
 ## [v0.3.0](https://github.com/k-antwi/fly/releases/tag/v0.3.0) - 2026-05-01
@@ -50,6 +116,7 @@ A new [docs/TRAEFIK_GUIDE.md](vscode-webview://1705mioeojloh5fh714ri1feqjhvoni82
 ### Added
 
 * **Node.js Docker Support** — Containerise Node.js applications with a single command
+  
   * `fly install:node` — Scaffold a Docker Compose environment for Node.js projects
   * Runs on port `3000` using an Alpine-based `node:22` image
   * Supports `--node=<version>` to pin a specific Node.js version (default: `22`)
@@ -58,18 +125,21 @@ A new [docs/TRAEFIK_GUIDE.md](vscode-webview://1705mioeojloh5fh714ri1feqjhvoni82
   * Supports `--live` to provision the environment directly on a remote VPS
   
 * **Vue.js Docker Support** — First-class Vite dev-server integration for Vue.js applications
+  
   * `fly install:vue` — Scaffold a Docker Compose environment for Vue.js projects
   * Runs on port `5173` with `VITE_HOST=0.0.0.0` for in-container HMR
   * Supports the same `--with`, `--node`, and `--live` flags as `install:node`
   * Default service: `mailpit`
   
 * **React Docker Support** — First-class Vite dev-server integration for React applications
+  
   * `fly install:react` — Scaffold a Docker Compose environment for React projects
   * Runs on port `5173` with `VITE_HOST=0.0.0.0` for in-container HMR
   * Supports the same `--with`, `--node`, and `--live` flags as `install:node`
   * Default service: `mailpit`
   
 * **Traefik Guide** — Comprehensive `docs/TRAEFIK_GUIDE.md` covering router setup, subdomain configuration, TLS, and troubleshooting
+  
 
 ### Technical Details
 
