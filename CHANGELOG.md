@@ -1,5 +1,36 @@
 # Release Notes
 
+## [v0.5.0](https://github.com/k-antwi/fly/releases/tag/v0.3.0/compare/v0.4.0...v0.5.0) - 2026-05-04
+
+### What's New
+
+CouchDB Container Support
+CouchDB is now a first-class service. Add it when running fly install, or pull it into an existing project by selecting it from the service list.
+
+fly install      # choose "couchdb" from the service picker
+fly couchdb      # open a shell inside the running couchdb container
+The container runs couchdb:latest on port 5984 (randomised on the host side to avoid collisions). A named Docker volume (fly-couchdb) keeps your data across restarts, and a curl-based healthcheck ensures dependent services only start once CouchDB is ready.
+
+The following variables are written to your .env automatically:
+
+COUCHDB_USERNAME=fly
+COUCHDB_PASSWORD=password
+COUCHDB_URL=http://couchdb:5984
+Because CouchDB exposes an HTTP REST API rather than a binary CLI, fly couchdb drops you into a bash shell where you can issue curl requests or use any HTTP client available in the container.
+
+fly gen:env
+Scaffolds a .fly/.env.fly reference file listing every environment variable that Fly recognises — general config, the share/expose tunnel, VPS deployment credentials, and Xdebug settings — with sensible defaults pre-filled.
+
+fly gen:env           # generates .fly/.env.fly (prompts before overwriting)
+fly gen:env --force   # overwrites without prompting
+Use it as a team-wide reference so every developer knows what knobs are available, or copy specific variables into your main .env to override Fly's defaults.
+
+Upgrading
+
+curl -fsSL https://raw.githubusercontent.com/k-antwi/fly-cli/main/release/install.sh | sh
+
+**Full Changelog**: https://github.com/k-antwi/fly-cli/compare/v0.4.0...v0.5.0
+
 ## [v0.4.0](https://github.com/k-antwi/fly/releases/tag/v0.3.0/compare/v0.3.1...v0.4.0) - 2026-05-02
 
 ### What's New
@@ -15,6 +46,7 @@ fly gen:nginx-conf --ip=203.0.113.10 \
                    --upstream=myapp \
                    --port=3000 \
                    --letsencrypt
+
 
 
 ```
@@ -40,6 +72,7 @@ include             /etc/letsencrypt/options-ssl-nginx.conf;
 ssl_dhparam         /etc/letsencrypt/ssl-dhparams.pem;
 
 
+
 ```
 When disabled, those four lines are emitted as comments so you can wire in your own certificate later without re-running the generator.
 
@@ -59,6 +92,7 @@ Built on Laravel Prompts — any flag you omit is prompted for, with sensible de
 ```bash
 curl -fsSL https://raw.githubusercontent.com/k-antwi/fly-cli/main/release/install.sh | sh
 fly --version    # → 0.4.0
+
 
 
 ```
@@ -101,6 +135,7 @@ Configure your hostname via FLY_APP_HOST in .env. TLS is enabled by default.
 ### Added
 
 * **One-line installer** — install fly with a single `curl` command
+  
   * Downloads the latest binary from GitHub Releases into `~/.fly/`
   * Creates the `~/.fly` directory if it does not already exist
   * Appends `~/.fly` to `PATH` in the user's shell profile (`~/.zshrc` for zsh, `~/.bashrc` / `~/.bash_profile` for bash)
@@ -108,6 +143,7 @@ Configure your hostname via FLY_APP_HOST in .env. TLS is enabled by default.
   
   ```bash
   curl -fsSL https://raw.githubusercontent.com/k-antwi/fly-cli/main/release/install.sh | sh
+  
   
   ```
 
