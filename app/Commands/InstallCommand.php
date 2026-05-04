@@ -13,7 +13,8 @@ class InstallCommand extends Command
                 {--with= : The services that should be included in the installation}
                 {--devcontainer : Create a .devcontainer configuration directory}
                 {--php=8.4 : The PHP version that should be used}
-                {--live : Install the services on the remote server}';
+                {--live : Install the services on the remote server}
+                {--no-mutagen : Use Docker bind mounts instead of Mutagen file sync}';
 
     protected $description = "Install Fly's default Docker Compose file";
 

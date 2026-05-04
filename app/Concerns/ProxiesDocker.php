@@ -66,8 +66,6 @@ trait ProxiesDocker
         $this->dockerCompose = $this->resolveDockerCompose();
 
         if (! $this->dockerCompose) {
-            $this->output->writeln('<error>Neither "docker compose" nor "docker-compose" is available.</error>');
-
             return 1;
         }
 
@@ -193,12 +191,35 @@ trait ProxiesDocker
     }
 
     /**
-     * Resolve the `docker compose` (or `docker-compose`) base command.
+     * Resolve the `mutagen compose`, `docker compose`, or `docker-compose` base command.
+     *
+     * When the project's docker-compose.yml contains an `x-mutagen:` block, Mutagen Compose
+     * is required — falling back to a plain bind-mount setup would leave the app volume empty.
      *
      * @return array<int,string>|null
      */
     protected function resolveDockerCompose(): ?array
     {
+        $composePath = $this->projectPath('docker-compose.yml');
+
+        if (file_exists($composePath) && str_contains((string) file_get_contents($composePath), 'x-mutagen:')) {
+            $check = new Process(['mutagen', 'compose', 'version']);
+            $check->run();
+
+            if (! $check->isSuccessful()) {
+                $this->installMutagen();
+
+                $recheck = new Process(['mutagen', 'compose', 'version']);
+                $recheck->run();
+
+                if (! $recheck->isSuccessful()) {
+                    return null;
+                }
+            }
+
+            return ['mutagen', 'compose'];
+        }
+
         $check = new Process(['docker', 'compose', 'version']);
         $check->run();
 
@@ -209,7 +230,38 @@ trait ProxiesDocker
         $legacy = new Process(['docker-compose', '--version']);
         $legacy->run();
 
-        return $legacy->isSuccessful() ? ['docker-compose'] : null;
+        if ($legacy->isSuccessful()) {
+            return ['docker-compose'];
+        }
+
+        $this->output->writeln('<error>Neither "docker compose" nor "docker-compose" is available.</error>');
+
+        return null;
+    }
+
+    protected function installMutagen(): void
+    {
+        $brew = new Process(['brew', '--version']);
+        $brew->run();
+
+        if (! $brew->isSuccessful()) {
+            $this->output->writeln('<error>Mutagen is required but could not be auto-installed.</error>');
+            $this->output->writeln('<error>Install it manually: https://mutagen.io/documentation/introduction/installation</error>');
+
+            return;
+        }
+
+        $this->output->writeln('<info>Installing Mutagen via Homebrew...</info>');
+
+        $install = new Process(['brew', 'install', 'mutagen-io/mutagen/mutagen']);
+        $install->setTimeout(300);
+        $install->run(function ($type, $buffer) {
+            $this->output->write($buffer);
+        });
+
+        if (! $install->isSuccessful()) {
+            $this->output->writeln('<error>Mutagen installation failed. Install it manually: https://mutagen.io/documentation/introduction/installation</error>');
+        }
     }
 
     protected function dockerIsRunning(): bool

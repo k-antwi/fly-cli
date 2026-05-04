@@ -157,6 +157,33 @@ trait InteractsWithDockerComposeServices
             unset($compose['volumes']);
         }
 
+        if (! ($this->hasOption('no-mutagen') && $this->option('no-mutagen'))) {
+            $vols = $compose['services']['laravel.fly']['volumes'] ?? [];
+            $compose['services']['laravel.fly']['volumes'] = array_map(
+                fn ($v) => $v === '.:/var/www/html' ? 'fly-app:/var/www/html' : $v,
+                $vols
+            );
+            $compose['volumes']['fly-app'] = null;
+            $compose['x-mutagen'] = [
+                'sync' => [
+                    'default' => [
+                        'alpha'  => '.',
+                        'beta'   => 'volumes://fly-app',
+                        'mode'   => 'two-way-resolved',
+                        'ignore' => [
+                            'vcs'   => true,
+                            'paths' => ['vendor/.bin', 'node_modules', 'storage/logs'],
+                        ],
+                        'permissions' => [
+                            'defaultFileMode'      => '0644',
+                            'defaultDirectoryMode' => '0755',
+                        ],
+                    ],
+                ],
+            ];
+            $this->ensureMutagenIsInstalled();
+        }
+
         $this->addRouterNetworkIfAbsent($compose);
         $this->backfillRouterLabels($compose);
 
@@ -446,6 +473,37 @@ trait InteractsWithDockerComposeServices
         return $process->run(function ($type, $line) {
             $this->output->write('    '.$line);
         });
+    }
+
+    protected function ensureMutagenIsInstalled(): void
+    {
+        $check = new Process(['mutagen', 'compose', 'version']);
+        $check->run();
+
+        if ($check->isSuccessful()) {
+            return;
+        }
+
+        $brew = new Process(['brew', '--version']);
+        $brew->run();
+
+        if (! $brew->isSuccessful()) {
+            $this->output->writeln('<comment>Mutagen could not be auto-installed. Install it manually: https://mutagen.io/documentation/introduction/installation</comment>');
+
+            return;
+        }
+
+        $this->output->writeln('<info>Installing Mutagen via Homebrew...</info>');
+
+        $install = new Process(['brew', 'install', 'mutagen-io/mutagen/mutagen']);
+        $install->setTimeout(300);
+        $install->run(function ($type, $buffer) {
+            $this->output->write($buffer);
+        });
+
+        if (! $install->isSuccessful()) {
+            $this->output->writeln('<comment>Mutagen installation failed. Install it manually: https://mutagen.io/documentation/introduction/installation</comment>');
+        }
     }
 
     /**
