@@ -140,3 +140,7 @@ it('redis stub has no traefik labels', function () use ($parseStub) {
 it('pgsql stub has no traefik labels', function () use ($parseStub) {
     expect($parseStub('pgsql')['pgsql'])->not->toHaveKey('labels');
 });
+
+it('couchdb stub has no traefik labels', function () use ($parseStub) {
+    expect($parseStub('couchdb')['couchdb'])->not->toHaveKey('labels');
+});

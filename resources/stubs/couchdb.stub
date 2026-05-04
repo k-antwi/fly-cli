@@ -1,0 +1,19 @@
+couchdb:
+    image: 'couchdb:latest'
+    environment:
+        COUCHDB_USER: '${COUCHDB_USERNAME:-fly}'
+        COUCHDB_PASSWORD: '${COUCHDB_PASSWORD:-password}'
+    volumes:
+        - 'fly-couchdb:/opt/couchdb/data'
+    ports:
+        - '${FORWARD_COUCHDB_PORT:-5984}:5984'
+    networks:
+        - fly
+    healthcheck:
+        test:
+            - CMD
+            - curl
+            - '-f'
+            - 'http://localhost:5984/'
+        retries: 3
+        timeout: 5s
