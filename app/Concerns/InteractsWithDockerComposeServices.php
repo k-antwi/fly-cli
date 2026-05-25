@@ -27,6 +27,7 @@ trait InteractsWithDockerComposeServices
         'mailpit',
         'selenium',
         'soketi',
+        'localstack',
     ];
 
     /**
@@ -146,7 +147,7 @@ trait InteractsWithDockerComposeServices
         // Merge volumes...
         collect($services)
             ->filter(function ($service) {
-                return in_array($service, ['mysql', 'pgsql', 'mariadb', 'mongodb', 'couchdb', 'redis', 'valkey', 'meilisearch', 'typesense', 'minio']);
+                return in_array($service, ['mysql', 'pgsql', 'mariadb', 'mongodb', 'couchdb', 'redis', 'valkey', 'meilisearch', 'typesense', 'minio', 'localstack']);
             })->filter(function ($service) use ($compose) {
                 return ! array_key_exists($service, $compose['volumes'] ?? []);
             })->each(function ($service) use (&$compose) {
@@ -228,7 +229,7 @@ trait InteractsWithDockerComposeServices
 
         collect($services)
             ->filter(function ($service) {
-                return in_array($service, ['mysql', 'pgsql', 'mariadb', 'mongodb', 'couchdb', 'redis', 'valkey', 'meilisearch', 'typesense', 'minio']);
+                return in_array($service, ['mysql', 'pgsql', 'mariadb', 'mongodb', 'couchdb', 'redis', 'valkey', 'meilisearch', 'typesense', 'minio', 'localstack']);
             })->filter(function ($service) use ($compose) {
                 return ! array_key_exists($service, $compose['volumes'] ?? []);
             })->each(function ($service) use (&$compose) {
@@ -344,6 +345,13 @@ trait InteractsWithDockerComposeServices
             $environment = preg_replace('/^MAIL_MAILER=(.*)/m', 'MAIL_MAILER=smtp', $environment);
             $environment = preg_replace('/^MAIL_HOST=(.*)/m', 'MAIL_HOST=mailpit', $environment);
             $environment = preg_replace('/^MAIL_PORT=(.*)/m', 'MAIL_PORT=1025', $environment);
+        }
+
+        if (in_array('localstack', $services)) {
+            $environment .= "\nAWS_ACCESS_KEY_ID=localstack";
+            $environment .= "\nAWS_SECRET_ACCESS_KEY=localstack";
+            $environment .= "\nAWS_DEFAULT_REGION=us-east-1";
+            $environment .= "\nAWS_ENDPOINT=http://localstack:4566\n";
         }
 
         file_put_contents($envPath, $environment);
@@ -545,7 +553,7 @@ trait InteractsWithDockerComposeServices
 
         collect($services)
             ->filter(function ($service) {
-                return in_array($service, ['mysql', 'pgsql', 'mariadb', 'mongodb', 'couchdb', 'redis', 'valkey', 'meilisearch', 'typesense', 'minio']);
+                return in_array($service, ['mysql', 'pgsql', 'mariadb', 'mongodb', 'couchdb', 'redis', 'valkey', 'meilisearch', 'typesense', 'minio', 'localstack']);
             })->filter(function ($service) use ($compose) {
                 return ! array_key_exists($service, $compose['volumes'] ?? []);
             })->each(function ($service) use (&$compose) {
@@ -594,7 +602,7 @@ trait InteractsWithDockerComposeServices
 
         collect($services)
             ->filter(function ($service) {
-                return in_array($service, ['mysql', 'pgsql', 'mariadb', 'mongodb', 'couchdb', 'redis', 'valkey', 'meilisearch', 'typesense', 'minio']);
+                return in_array($service, ['mysql', 'pgsql', 'mariadb', 'mongodb', 'couchdb', 'redis', 'valkey', 'meilisearch', 'typesense', 'minio', 'localstack']);
             })->filter(function ($service) use ($compose) {
                 return ! array_key_exists($service, $compose['volumes'] ?? []);
             })->each(function ($service) use (&$compose) {
@@ -673,7 +681,7 @@ trait InteractsWithDockerComposeServices
 
         collect($services)
             ->filter(function ($service) {
-                return in_array($service, ['mysql', 'pgsql', 'mariadb', 'mongodb', 'couchdb', 'redis', 'valkey', 'meilisearch', 'typesense', 'minio']);
+                return in_array($service, ['mysql', 'pgsql', 'mariadb', 'mongodb', 'couchdb', 'redis', 'valkey', 'meilisearch', 'typesense', 'minio', 'localstack']);
             })->filter(function ($service) use ($compose) {
                 return ! array_key_exists($service, $compose['volumes'] ?? []);
             })->each(function ($service) use (&$compose) {
@@ -722,7 +730,7 @@ trait InteractsWithDockerComposeServices
 
         collect($services)
             ->filter(function ($service) {
-                return in_array($service, ['mysql', 'pgsql', 'mariadb', 'mongodb', 'couchdb', 'redis', 'valkey', 'meilisearch', 'typesense', 'minio']);
+                return in_array($service, ['mysql', 'pgsql', 'mariadb', 'mongodb', 'couchdb', 'redis', 'valkey', 'meilisearch', 'typesense', 'minio', 'localstack']);
             })->filter(function ($service) use ($compose) {
                 return ! array_key_exists($service, $compose['volumes'] ?? []);
             })->each(function ($service) use (&$compose) {
@@ -801,7 +809,7 @@ trait InteractsWithDockerComposeServices
 
         collect($services)
             ->filter(function ($service) {
-                return in_array($service, ['mysql', 'pgsql', 'mariadb', 'mongodb', 'couchdb', 'redis', 'valkey', 'meilisearch', 'typesense', 'minio']);
+                return in_array($service, ['mysql', 'pgsql', 'mariadb', 'mongodb', 'couchdb', 'redis', 'valkey', 'meilisearch', 'typesense', 'minio', 'localstack']);
             })->filter(function ($service) use ($compose) {
                 return ! array_key_exists($service, $compose['volumes'] ?? []);
             })->each(function ($service) use (&$compose) {
@@ -850,7 +858,7 @@ trait InteractsWithDockerComposeServices
 
         collect($services)
             ->filter(function ($service) {
-                return in_array($service, ['mysql', 'pgsql', 'mariadb', 'mongodb', 'couchdb', 'redis', 'valkey', 'meilisearch', 'typesense', 'minio']);
+                return in_array($service, ['mysql', 'pgsql', 'mariadb', 'mongodb', 'couchdb', 'redis', 'valkey', 'meilisearch', 'typesense', 'minio', 'localstack']);
             })->filter(function ($service) use ($compose) {
                 return ! array_key_exists($service, $compose['volumes'] ?? []);
             })->each(function ($service) use (&$compose) {

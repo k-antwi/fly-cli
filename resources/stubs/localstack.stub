@@ -1,0 +1,15 @@
+localstack:
+    image: 'localstack/localstack'
+    ports:
+        - '${FORWARD_LOCALSTACK_PORT:-4566}:4566'
+    environment:
+        - DOCKER_HOST=unix:///var/run/docker.sock
+    volumes:
+        - 'fly-localstack:/var/lib/localstack'
+        - '/var/run/docker.sock:/var/run/docker.sock'
+    networks:
+        - fly
+    healthcheck:
+        test: ["CMD", "curl", "-f", "http://localhost:4566/_localstack/health"]
+        retries: 3
+        timeout: 5s
