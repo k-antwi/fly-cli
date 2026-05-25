@@ -9,7 +9,9 @@ class UpCommand extends ContainerCommand
 {
     use ManagesRouter;
 
-    protected $signature = 'up {args?* : Arguments forwarded to "docker compose up"}';
+    protected $signature = 'up
+        {args?* : Arguments forwarded to "docker compose up"}
+        {--no-router : Skip starting the Fly Traefik router (use when running alongside an existing Traefik instance)}';
 
     protected $description = 'Start the application containers';
 
@@ -19,7 +21,9 @@ class UpCommand extends ContainerCommand
             return $code;
         }
 
-        if (! $this->routerNetworkExists()) {
+        if ($this->option('no-router')) {
+            $this->ensureRouterNetworkExists();
+        } elseif (! $this->routerNetworkExists()) {
             $this->output->writeln('<fg=gray>Initialising fly router...</>');
             $this->startRouter();
         } elseif (! $this->routerContainerIsRunning()) {
